@@ -118,6 +118,8 @@ public class GameEngine
             _outputManager.WriteLine("5. Equip item");
             _outputManager.WriteLine("6. Use consumable");
             _outputManager.WriteLine("7. Drop item");
+            _outputManager.WriteLine("8. Find strongest weapon");
+            _outputManager.WriteLine("9. Total inventory value");
             _outputManager.WriteLine("0. Back");
             _outputManager.Display();
 
@@ -131,6 +133,8 @@ public class GameEngine
                 case "5": EquipItem(); break;
                 case "6": UseConsumable(); break;
                 case "7": DropItem(); break;
+                case "8": FindStrongestWeapon(); break;
+                case "9": TotalInventoryValue(); break;
                 case "0": return;
                 default:
                     _outputManager.WriteLine("Invalid selection.", ConsoleColor.Red);
@@ -309,6 +313,49 @@ public class GameEngine
             _context.Items.Remove(item);
             _context.SaveChanges();
         }
+        Pause();
+    }
+
+    private void FindStrongestWeapon()
+    {
+        if (_player?.Inventory == null) return;
+
+        Weapon? strongestWeapon = _player.Inventory.Items
+            .OfType<Weapon>()
+            .OrderByDescending(w => w.Attack)
+            .FirstOrDefault();
+
+        if (strongestWeapon == null)
+        {
+            Console.WriteLine("You do not own any weapons.");
+            Pause();
+            return;
+        }
+
+        Console.WriteLine($"Strongest weapon: {strongestWeapon.Name} (Attack: {strongestWeapon.Attack})");
+        Pause();
+    }
+
+    private void TotalInventoryValue()
+    {
+        if (_player?.Inventory == null) return;
+
+        var items = _player.Inventory.Items.ToList();
+        int totalValue = items.Sum(i => i.Value);
+
+        Console.WriteLine($"Total inventory value: {totalValue} gold");
+        Console.WriteLine();
+
+        var breakdown = items
+            .GroupBy(i => i.ItemType)
+            .OrderBy(g => g.Key);
+
+        foreach (var group in breakdown)
+        {
+            int groupValue = group.Sum(i => i.Value);
+            Console.WriteLine($"{group.Key}: {group.Count()} item(s), {groupValue} gold");
+        }
+
         Pause();
     }
 
